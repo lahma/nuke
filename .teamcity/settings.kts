@@ -23,16 +23,9 @@ import jetbrains.buildServer.configs.kotlin.v2018_1.vcs.*
 version = "2019.2"
 
 project {
-    buildType(Compile)
-    buildType(Pack)
-    buildType(Test_P1T2)
-    buildType(Test_P2T2)
-    buildType(Test)
-    buildType(Coverage)
-    buildType(Publish)
-    buildType(Announce)
+    buildType(B)
 
-    buildTypesOrder = arrayListOf(Compile, Pack, Test_P1T2, Test_P2T2, Test, Coverage, Publish, Announce)
+    buildTypesOrder = arrayListOf(B)
 
     params {
         select (
@@ -90,237 +83,22 @@ project {
         )
     }
 }
-object Compile : BuildType({
-    name = "⚙️ Compile"
+object B : BuildType({
+    name = "⚙️ B"
     vcs {
         root(DslContext.settingsRoot)
         cleanCheckout = true
     }
+    artifactRules = "my-artifact.txt => "
     steps {
         exec {
             path = "build.cmd"
-            arguments = "Restore Compile --skip"
-        }
-    }
-})
-object Pack : BuildType({
-    name = "📦 Pack"
-    vcs {
-        root(DslContext.settingsRoot)
-        cleanCheckout = true
-    }
-    artifactRules = "output/packages/*.nupkg => output/packages"
-    steps {
-        exec {
-            path = "build.cmd"
-            arguments = "Pack --skip"
+            arguments = "A B --skip"
         }
     }
     triggers {
         vcs {
             triggerRules = "+:**"
-        }
-        schedule {
-            schedulingPolicy = daily {
-                hour = 3
-            }
-            triggerRules = "+:**"
-            triggerBuild = always()
-            withPendingChangesOnly = false
-            enableQueueOptimization = true
-            param("cronExpression_min", "3")
-        }
-    }
-    dependencies {
-        snapshot(Compile) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-    }
-})
-object Test_P1T2 : BuildType({
-    name = "🚦 Test 🧩 1/2"
-    vcs {
-        root(DslContext.settingsRoot)
-        cleanCheckout = true
-    }
-    artifactRules = """
-        output/test-results/*.trx => output/test-results
-        output/test-results/*.xml => output/test-results
-    """.trimIndent()
-    steps {
-        exec {
-            path = "build.cmd"
-            arguments = "Test --skip --test-partition 1"
-        }
-    }
-    dependencies {
-        snapshot(Compile) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-    }
-})
-object Test_P2T2 : BuildType({
-    name = "🚦 Test 🧩 2/2"
-    vcs {
-        root(DslContext.settingsRoot)
-        cleanCheckout = true
-    }
-    artifactRules = """
-        output/test-results/*.trx => output/test-results
-        output/test-results/*.xml => output/test-results
-    """.trimIndent()
-    steps {
-        exec {
-            path = "build.cmd"
-            arguments = "Test --skip --test-partition 2"
-        }
-    }
-    dependencies {
-        snapshot(Compile) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-    }
-})
-object Test : BuildType({
-    name = "🚦 Test"
-    type = Type.COMPOSITE
-    vcs {
-        root(DslContext.settingsRoot)
-        cleanCheckout = true
-        showDependenciesChanges = true
-    }
-    artifactRules = "**/*"
-    triggers {
-        vcs {
-            triggerRules = "+:**"
-        }
-        schedule {
-            schedulingPolicy = daily {
-                hour = 3
-            }
-            triggerRules = "+:**"
-            triggerBuild = always()
-            withPendingChangesOnly = false
-            enableQueueOptimization = true
-            param("cronExpression_min", "3")
-        }
-    }
-    dependencies {
-        snapshot(Test_P1T2) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-        snapshot(Test_P2T2) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-        artifacts(Test_P1T2) {
-            artifactRules = "**/*"
-        }
-        artifacts(Test_P2T2) {
-            artifactRules = "**/*"
-        }
-    }
-})
-object Coverage : BuildType({
-    name = "📊 Coverage"
-    vcs {
-        root(DslContext.settingsRoot)
-        cleanCheckout = true
-    }
-    artifactRules = "output/coverage-report.zip => output"
-    steps {
-        exec {
-            path = "build.cmd"
-            arguments = "Coverage --skip"
-        }
-    }
-    triggers {
-        finishBuildTrigger {
-            buildType = "${Test.id}"
-        }
-    }
-    dependencies {
-        snapshot(Test) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-        artifacts(Test) {
-            artifactRules = """
-                output/test-results/*.trx => output/test-results
-                output/test-results/*.xml => output/test-results
-            """.trimIndent()
-        }
-    }
-})
-object Publish : BuildType({
-    name = "🚚 Publish"
-    type = Type.DEPLOYMENT
-    vcs {
-        root(DslContext.settingsRoot)
-        cleanCheckout = true
-    }
-    steps {
-        exec {
-            path = "build.cmd"
-            arguments = "Publish --skip"
-        }
-    }
-    params {
-        text (
-            "env.ApiKey",
-            label = "ApiKey",
-            description = "NuGet Api Key",
-            value = "",
-            allowEmpty = false,
-            display = ParameterDisplay.PROMPT)
-        text (
-            "env.SlackWebhook",
-            label = "SlackWebhook",
-            description = "Slack Webhook",
-            value = "",
-            allowEmpty = false,
-            display = ParameterDisplay.PROMPT)
-        text (
-            "env.GitterAuthToken",
-            label = "GitterAuthToken",
-            description = "Gitter Auth Token",
-            value = "",
-            allowEmpty = false,
-            display = ParameterDisplay.PROMPT)
-    }
-    dependencies {
-        snapshot(Test) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-        snapshot(Pack) {
-            onDependencyFailure = FailureAction.FAIL_TO_START
-            onDependencyCancel = FailureAction.CANCEL
-        }
-        artifacts(Pack) {
-            artifactRules = "output/packages/*.nupkg => output/packages"
-        }
-    }
-})
-object Announce : BuildType({
-    name = "🗣 Announce"
-    vcs {
-        root(DslContext.settingsRoot)
-        cleanCheckout = true
-    }
-    steps {
-        exec {
-            path = "build.cmd"
-            arguments = "Announce --skip"
-        }
-    }
-    triggers {
-        finishBuildTrigger {
-            buildType = "${Publish.id}"
         }
     }
 })

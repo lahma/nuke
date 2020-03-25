@@ -46,11 +46,14 @@ using static Nuke.Common.Tools.Slack.SlackTasks;
 [TeamCity(
     TeamCityAgentPlatform.Windows,
     Version = "2019.2",
-    VcsTriggeredTargets = new[] { nameof(Pack), nameof(Test) },
-    NightlyTriggeredTargets = new[] { nameof(Pack), nameof(Test) },
-    ManuallyTriggeredTargets = new[] { nameof(Publish) },
-    NonEntryTargets = new[] { nameof(Restore) },
-    ExcludedTargets = new[] { nameof(Clean) })]
+    VcsTriggeredTargets = new[] { nameof(B) },
+    NonEntryTargets = new[] { nameof(A) }
+    // VcsTriggeredTargets = new[] { nameof(Pack), nameof(Test) },
+    // NightlyTriggeredTargets = new[] { nameof(Pack), nameof(Test) },
+    // ManuallyTriggeredTargets = new[] { nameof(Publish) },
+    // NonEntryTargets = new[] { nameof(Restore) },
+    // ExcludedTargets = new[] { nameof(Clean) }
+    )]
 [GitHubActions(
     "continuous",
     GitHubActionsImage.MacOs1014,
@@ -98,6 +101,22 @@ partial class Build : NukeBuild
     const string DevelopBranch = "develop";
     const string ReleaseBranchPrefix = "release";
     const string HotfixBranchPrefix = "hotfix";
+
+    Target A => _ => _
+        .Produces(RootDirectory / "my-artifact2.txt")
+        .Executes(() =>
+        {
+
+        });
+
+    Target B => _ => _
+        .DependsOn(A)
+        // .Produces(RootDirectory / "my-artifact2.txt")
+        .Produces(RootDirectory / "my-artifact.txt")
+        .Executes(() =>
+        {
+
+        });
 
     Target Clean => _ => _
         .Before(Restore)

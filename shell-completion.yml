@@ -23,8 +23,10 @@ NoLogo:
 Plan: 
 Root: 
 Skip:
+- A
 - Analysis
 - Announce
+- B
 - Changelog
 - CheckoutExternalRepositories
 - Clean
@@ -46,8 +48,10 @@ Skip:
 SlackWebhook: 
 Source: 
 Target:
+- A
 - Analysis
 - Announce
+- B
 - CheckoutExternalRepositories
 - Clean
 - Compile

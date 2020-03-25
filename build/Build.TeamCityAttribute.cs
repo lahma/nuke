@@ -29,6 +29,8 @@ partial class Build
         {
             var dictionary = new Dictionary<string, string>
                              {
+                                 { nameof(A), "⚙️" },
+                                 { nameof(B), "⚙️" },
                                  { nameof(Compile), "⚙️" },
                                  { nameof(Test), "🚦" },
                                  { nameof(Pack), "📦" },

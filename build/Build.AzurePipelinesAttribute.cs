@@ -23,9 +23,12 @@ partial class Build
         {
         }
 
-        protected override AzurePipelinesJob GetJob(ExecutableTarget executableTarget, LookupTable<ExecutableTarget, AzurePipelinesJob> jobs)
+        protected override AzurePipelinesJob GetJob(
+            ExecutableTarget executableTarget,
+            LookupTable<ExecutableTarget, AzurePipelinesJob> jobs,
+            IReadOnlyCollection<ExecutableTarget> relevantTargets)
         {
-            var job = base.GetJob(executableTarget, jobs);
+            var job = base.GetJob(executableTarget, jobs, relevantTargets);
 
             var dictionary = new Dictionary<string, string>
                              {
@@ -34,7 +37,8 @@ partial class Build
                                  { nameof(Pack), "📦" },
                                  { nameof(Coverage), "📊" },
                                  { nameof(Publish), "🚚" },
-                                 { nameof(Announce), "🗣" }
+                                 { nameof(Announce), "🗣" },
+                                 { nameof(Final), "🏁" }
                              };
             var symbol = dictionary.GetValueOrDefault(job.Name).NotNull("symbol != null");
             job.DisplayName = job.PartitionName == null

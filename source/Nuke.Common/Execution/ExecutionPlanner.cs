@@ -88,7 +88,7 @@ namespace Nuke.Common.Execution
         {
             var vertexDictionary = executableTargets.ToDictionary(x => x, x => new Vertex<ExecutableTarget>(x));
             foreach (var (executable, vertex) in vertexDictionary)
-                vertex.Dependencies.AddRange(executable.AllDependencies.Select(x => vertexDictionary[x]));
+                vertex.Dependencies.AddRange(executable.AllDependencies.Select(x => vertexDictionary.GetValueOrDefault(x)).WhereNotNull());
 
             return vertexDictionary;
         }

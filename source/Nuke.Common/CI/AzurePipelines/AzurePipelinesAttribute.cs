@@ -74,7 +74,7 @@ namespace Nuke.Common.CI.AzurePipelines
         {
             var lookupTable = new LookupTable<ExecutableTarget, AzurePipelinesJob>();
             var jobs = relevantTargets
-                .Select(x => (ExecutableTarget: x, Job: GetJob(x, lookupTable)))
+                .Select(x => (ExecutableTarget: x, Job: GetJob(x, lookupTable, relevantTargets)))
                 .ForEachLazy(x => lookupTable.Add(x.ExecutableTarget, x.Job))
                 .Select(x => x.Job).ToArray();
 
@@ -90,7 +90,8 @@ namespace Nuke.Common.CI.AzurePipelines
 
         protected virtual AzurePipelinesJob GetJob(
             ExecutableTarget executableTarget,
-            LookupTable<ExecutableTarget, AzurePipelinesJob> jobs)
+            LookupTable<ExecutableTarget, AzurePipelinesJob> jobs,
+            IReadOnlyCollection<ExecutableTarget> relevantTargets)
         {
             var (partitionName, totalPartitions) = ArtifactExtensions.Partitions.GetValueOrDefault(executableTarget.Definition);
 
@@ -118,7 +119,7 @@ namespace Nuke.Common.CI.AzurePipelines
             //                ArtifactRules = rules
             //            }).ToArray<TeamCityDependency>();
 
-            var chainLinkNames = GetInvokedTargets(executableTarget).ToArray();
+            var chainLinkNames = GetInvokedTargets(executableTarget, relevantTargets).ToArray();
             var dependencies = GetTargetDependencies(executableTarget).SelectMany(x => jobs[x]).ToArray();
             return new AzurePipelinesJob
                    {

@@ -72,8 +72,8 @@ using static Nuke.Common.Tools.Slack.SlackTasks;
     AzurePipelinesImage.UbuntuLatest,
     AzurePipelinesImage.WindowsLatest,
     AzurePipelinesImage.MacOsLatest,
-    InvokedTargets = new[] { nameof(Test), nameof(Pack) },
-    NonEntryTargets = new[] { nameof(Restore) },
+    InvokedTargets = new[] { nameof(Final) },
+    NonEntryTargets = new[] { nameof(Restore), nameof(Compile), nameof(Pack), nameof(Test), nameof(Coverage) },
     ExcludedTargets = new[] { nameof(Clean), nameof(Coverage) })]
 partial class Build : NukeBuild
 {
@@ -299,6 +299,13 @@ partial class Build : NukeBuild
                     .AppendLine(ChangelogSectionNotes.Select(x => x.Replace("- ", "* ")).JoinNewLine()).ToString(),
                 "593f3dadd73408ce4f66db89",
                 GitterAuthToken);
+        });
+
+    Target Final => _ => _
+        .DependsOn(Coverage, Pack)
+        .Executes(() =>
+        {
+
         });
 
     Target Install => _ => _

@@ -90,7 +90,7 @@ namespace Nuke.Common.CI.TeamCity
             var vcsRoot = GetVcsRoot(build);
             var lookupTable = new LookupTable<ExecutableTarget, TeamCityBuildType>();
             var buildTypes = relevantTargets
-                .SelectMany(x => GetBuildTypes(build, x, vcsRoot, lookupTable), (x, y) => (ExecutableTarget: x, BuildType: y))
+                .SelectMany(x => GetBuildTypes(build, x, vcsRoot, lookupTable, relevantTargets), (x, y) => (ExecutableTarget: x, BuildType: y))
                 .ForEachLazy(x => lookupTable.Add(x.ExecutableTarget, x.BuildType))
                 .Select(x => x.BuildType).ToArray();
 
@@ -117,7 +117,8 @@ namespace Nuke.Common.CI.TeamCity
             NukeBuild build,
             ExecutableTarget executableTarget,
             TeamCityVcsRoot vcsRoot,
-            LookupTable<ExecutableTarget, TeamCityBuildType> buildTypes)
+            LookupTable<ExecutableTarget, TeamCityBuildType> buildTypes,
+            IReadOnlyCollection<ExecutableTarget> relevantTargets)
         {
             var isPartitioned = ArtifactExtensions.Partitions.ContainsKey(executableTarget.Definition);
             var artifactRules = ArtifactExtensions.ArtifactProducts[executableTarget.Definition].Select(GetArtifactRule).ToArray();
@@ -134,7 +135,7 @@ namespace Nuke.Common.CI.TeamCity
                            ArtifactRules = rules
                        }).ToArray<TeamCityDependency>();
 
-            var chainLinkNames = GetInvokedTargets(executableTarget).ToArray();
+            var chainLinkNames = GetInvokedTargets(executableTarget, relevantTargets).ToArray();
             var snapshotDependencies = GetTargetDependencies(executableTarget)
                 .SelectMany(x => buildTypes[x])
                 .Where(x => x.Partition == null)

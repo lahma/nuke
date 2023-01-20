@@ -32,7 +32,7 @@ $env:NUKE_TELEMETRY_OPTOUT = 1
 
 function ExecSafe([scriptblock] $cmd) {
     & $cmd
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
 # Print environment variables

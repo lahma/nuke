@@ -30,7 +30,7 @@ $env:DOTNET_MULTILEVEL_LOOKUP = 0
 
 function ExecSafe([scriptblock] $cmd) {
     & $cmd
-    if ($LASTEXITCODE) { exit $LASTEXITCODE }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
 # If dotnet CLI is installed globally and it matches requested version, use for execution
